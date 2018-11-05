@@ -13,7 +13,7 @@ import java.util.TimerTask;
 import static android.content.Context.WINDOW_SERVICE;
 
 public class HeadupWindowManager {
-
+    private CompatibleHandle compatibleHandle;
     private WindowManager windowManager;
     private WindowManager.LayoutParams layoutParams;
     private Context mContext;
@@ -26,6 +26,7 @@ public class HeadupWindowManager {
         this.mContext = context;
         this.isViewAdded=false;
         setHeadupView(headupView);
+        compatibleHandle = new CompatibleHandle(context);
         windowManager = (WindowManager) mContext.getSystemService(WINDOW_SERVICE);
         layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -47,9 +48,7 @@ public class HeadupWindowManager {
            removeViewToWindowManager();
         }
         if (!isViewAdded) {
-            if(Build.MANUFACTURER.toLowerCase().equals("meizu")) {
-                setMeizuParams(layoutParams);
-            }
+            compatibleHandle.preAddWindow(layoutParams);
             windowManager.addView(headupView, layoutParams);
             headupView.requestFocus();
             isViewAdded = true;
@@ -120,20 +119,7 @@ public class HeadupWindowManager {
         timerTask =null;
         timer=null;
     }
-    private static void setMeizuParams(WindowManager.LayoutParams params) {
-        try {
-            Class MeizuParamsClass = Class.forName("android.view.MeizuLayoutParams");
-            Field flagField = MeizuParamsClass.getDeclaredField("flags");
-            flagField.setAccessible(true);
-            Object MeizuParams = MeizuParamsClass.newInstance();
-            flagField.setInt(MeizuParams, 0x40);
 
-            Field mzParamsField = params.getClass().getField("meizuParams");
-            mzParamsField.set(params, MeizuParams);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void setHeadupView(HeadupView headupView) {
         this.headupView = headupView;

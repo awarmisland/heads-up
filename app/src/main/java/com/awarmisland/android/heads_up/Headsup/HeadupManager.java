@@ -1,6 +1,14 @@
 package com.awarmisland.android.heads_up.Headsup;
 
+import android.app.AppOpsManager;
 import android.content.Context;
+import android.os.Binder;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.annotation.RequiresApi;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * 横幅
@@ -51,7 +59,25 @@ public class HeadupManager {
     }
 
     public void showHeadup(){
-        windowManager.addViewToWindowManager();
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+            if(!checkFloatPermission(mContext))
+                windowManager.addViewToWindowManager();
+        }
     }
+
+    public static boolean checkFloatPermission(Context context) {
+        Boolean result = true;
+        if (Build.VERSION.SDK_INT >= 23) {
+            try {
+                Class clazz = Settings.class;
+                Method canDrawOverlays = clazz.getDeclaredMethod("canDrawOverlays", Context.class);
+                result = (Boolean) canDrawOverlays.invoke(null, context);
+            } catch (Exception e) {
+            }
+        }
+        return result;
+    }
+
+
 
 }
